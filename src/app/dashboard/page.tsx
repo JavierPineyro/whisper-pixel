@@ -1,7 +1,7 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { EncodeForm } from "@/components/encode-form"
-import { DecodeForm } from "@/components/decode-form"
-import { Navbar } from "@/components/navbar"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
+import { EncodeForm } from "~/components/encode-form"
+import { DecodeForm } from "~/components/decode-form"
+import { Navbar } from "~/components/navbar"
 
 export default function DashboardPage() {
   return (
