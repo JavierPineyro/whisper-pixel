@@ -1,12 +1,10 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
 import { EncodeForm } from "~/components/encode-form"
 import { DecodeForm } from "~/components/decode-form"
-import { Navbar } from "~/components/navbar"
 
 export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Navbar />
       <main className="flex-1 container max-w-5xl mx-auto py-8 px-4">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold tracking-tight">Whisper Pixel</h1>

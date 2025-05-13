@@ -3,6 +3,7 @@ import "~/styles/globals.css";
 import { type Metadata } from "next";
 import { Oxanium } from "next/font/google"
 import { ThemeProvider } from "~/components/theme-provider"
+import { Navbar } from "~/components/navbar";
 
 const oxanium = Oxanium({ subsets: ["latin"] })
 
@@ -20,6 +21,7 @@ export default function RootLayout({
     <html lang="es" className="dark" suppressHydrationWarning={process.env.NODE_ENV === 'production'}>
       <body className={oxanium.className}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+          <Navbar />
           {children}
         </ThemeProvider>
       </body>
