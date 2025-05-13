@@ -115,8 +115,8 @@ export function EncodeForm() {
 
         <Alert variant="default" className="bg-purple-500/10 text-purple-500 border-purple-500/20">
           <Lock className="h-4 w-4" />
-          <AlertTitle>Seguridad</AlertTitle>
-          <AlertDescription>
+          <AlertTitle className="font-semibold">Seguridad</AlertTitle>
+          <AlertDescription className="text-purple-500/80">
             Tu mensaje será ocultado de forma segura en la imagen. Solo quien conozca que existe un mensaje oculto podrá
             extraerlo.
           </AlertDescription>

@@ -10,7 +10,7 @@ export default function DashboardPage() {
       <main className="flex-1 container max-w-5xl mx-auto py-8 px-4">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold tracking-tight">Whisper Pixel</h1>
-          <p className="text-muted-foreground mt-2">Oculta mensajes en imágenes o revela mensajes ocultos</p>
+          <p className="text-muted-foreground mt-2">Oculta o revela mensajes escondidos en imágenes</p>
         </div>
 
         <Tabs defaultValue="encode" className="w-full">

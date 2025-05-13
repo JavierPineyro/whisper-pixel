@@ -1,10 +1,10 @@
 import "~/styles/globals.css";
 
 import { type Metadata } from "next";
-import { Inter } from "next/font/google"
+import { Oxanium } from "next/font/google"
 import { ThemeProvider } from "~/components/theme-provider"
 
-const inter = Inter({ subsets: ["latin"] })
+const oxanium = Oxanium({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Whisper Pixel - Oculta y revela mensajes en imágenes",
@@ -18,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className="dark" suppressHydrationWarning={process.env.NODE_ENV === 'production'}>
-      <body className={inter.className}>
+      <body className={oxanium.className}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           {children}
         </ThemeProvider>
