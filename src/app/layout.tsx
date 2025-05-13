@@ -7,8 +7,8 @@ import { ThemeProvider } from "~/components/theme-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Mensaje Secreto - Oculta y revela mensajes en imágenes",
-  description: "Aplicación para ocultar mensajes secretos en imágenes y revelarlos",
+  title: "Whisper Pixel - Oculta y revela mensajes en imágenes",
+  description: "Aplicación para ocultar mensajes secretos en imágenes PNG y revelarlos",
 }
 
 export default function RootLayout({
@@ -17,9 +17,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es" className="dark">
+    <html lang="es" className="dark" suppressHydrationWarning={process.env.NODE_ENV === 'production'}>
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           {children}
         </ThemeProvider>
       </body>
