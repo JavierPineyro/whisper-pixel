@@ -1,0 +1,155 @@
+// app/api/encode/route.ts
+import { hideMessage } from '@/utils/steganography-utils';
+import { NextRequest, NextResponse } from 'next/server';
+
+/**
+ * API handler para ocultar mensajes en imágenes usando esteganografía
+ * Recibe un FormData con los campos 'image' y 'message'
+ * Devuelve la imagen modificada como stream
+ */
+export async function POST(request: NextRequest) {
+  try {
+    // Verificar que el request sea FormData
+    if (!request.headers.get('content-type')?.includes('multipart/form-data')) {
+      return NextResponse.json(
+        { error: 'Se requiere FormData' },
+        { status: 400 }
+      );
+    }
+
+    // Obtener FormData del request
+    const formData = await request.formData();
+    
+    // Extraer la imagen y el mensaje
+    const imageFile = formData.get('image') as File | null;
+    const message = formData.get('message') as string | null;
+    
+    // Validar que se hayan enviado ambos campos
+    if (!imageFile || !message) {
+      return NextResponse.json(
+        { error: 'Se requieren los campos "image" y "message"' },
+        { status: 400 }
+      );
+    }
+    
+    // Validar que el archivo sea una imagen PNG
+    if (!imageFile.type || !imageFile.type.startsWith('image/png')) {
+      return NextResponse.json(
+        { error: 'Solo se admiten imágenes PNG' },
+        { status: 400 }
+      );
+    }
+    
+    // Convertir imagen a ArrayBuffer
+    const imageBuffer = Buffer.from(await imageFile.arrayBuffer());
+    
+    // Obtener parámetros de encriptación
+    const encrypted = formData.get('encrypted') === 'true';
+    // Usar la clave de encriptación desde variables de entorno
+    const encryptionKey = encrypted ? process.env.STEGANOGRAPHY_KEY : null;
+    
+    // Ocultar el mensaje en la imagen
+    const modifiedImageBuffer = await hideMessage(
+      imageBuffer,
+      message,
+      encrypted,
+      encryptionKey || null
+    );
+    
+    // Construir la respuesta como stream
+    const headers = new Headers();
+    headers.set('Content-Type', 'image/png');
+    headers.set('Content-Disposition', 'attachment; filename="encoded_image.png"');
+    
+    // Devolver la imagen modificada como stream
+    return new NextResponse(modifiedImageBuffer, {
+      status: 200,
+      headers
+    });
+    
+  } catch (error) {
+    console.error('Error en el endpoint de esteganografía:', error);
+    
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Error al procesar la imagen' },
+      { status: 500 }
+    );
+  }
+}
+----------------------------------------
+// app/api/decode/route.ts
+import { extractMessage } from '@/utils/steganography-utils';
+import { NextRequest, NextResponse } from 'next/server';
+import { decryptText } from '@/utils/encryption-utils';
+
+/**
+ * API handler para extraer mensajes ocultos en imágenes usando esteganografía
+ * Recibe un FormData con el campo 'image'
+ * Devuelve el mensaje extraído
+ */
+export async function POST(request: NextRequest) {
+  try {
+    // Verificar que el request sea FormData
+    if (!request.headers.get('content-type')?.includes('multipart/form-data')) {
+      return NextResponse.json(
+        { error: 'Se requiere FormData' },
+        { status: 400 }
+      );
+    }
+
+    // Obtener FormData del request
+    const formData = await request.formData();
+
+    // Extraer la imagen
+    const imageFile = formData.get('image') as File | null;
+
+    // Validar que se haya enviado la imagen
+    if (!imageFile) {
+      return NextResponse.json(
+        { error: 'Se requiere el campo "image"' },
+        { status: 400 }
+      );
+    }
+
+    // Validar que el archivo sea una imagen PNG
+    if (!imageFile.type || !imageFile.type.startsWith('image/png')) {
+      return NextResponse.json(
+        { error: 'Solo se admiten imágenes PNG' },
+        { status: 400 }
+      );
+    }
+
+    // Convertir imagen a ArrayBuffer
+    const imageBuffer = Buffer.from(await imageFile.arrayBuffer());
+
+    // Obtener parámetros de encriptación
+    const encrypted = formData.get('encrypted') === 'true';
+
+    // Usar la clave de encriptación desde variables de entorno
+    const encryptionKey = encrypted ? process.env.STEGANOGRAPHY_KEY : null;
+
+    // Extraer el mensaje de la imagen
+    const extractedMessage = await extractMessage(imageBuffer);
+
+    // Si el mensaje está encriptado, desencriptarlo
+    let message = extractedMessage;
+    if (encrypted && encryptionKey) {
+      message = decryptText(extractedMessage, encryptionKey);
+    }
+
+    // Devolver el mensaje extraído
+    return NextResponse.json(
+      { 
+        success: true, 
+        message 
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('Error en el endpoint de esteganografía:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Error al procesar la imagen' },
+      { status: 500 }
+    );
+  }
+}
