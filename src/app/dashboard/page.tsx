@@ -24,13 +24,6 @@ export default function DashboardPage() {
           </TabsContent>
         </Tabs>
       </main>
-      <footer className="py-6 border-t border-border">
-        <div className="container flex flex-col items-center justify-center gap-2 text-center text-sm">
-          <p className="text-muted-foreground">
-            &copy; {new Date().getFullYear()} Whisper Pixel. Ningún derecho reservado.
-          </p>
-        </div>
-      </footer>
     </div>
   )
 }

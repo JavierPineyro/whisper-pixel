@@ -79,11 +79,11 @@ export async function hideMessage(
     let bitIndex = 0;
     
     for (let i = 0; i < dataToHide.length; i++) {
-      const byte = dataToHide[i];
+      const byte: number = dataToHide[i]!;
       
       // Procesar cada bit del byte
       for (let j = 0; j < 8; j++) {
-        const bit = (byte >> j) & 1;
+        const bit = ((byte ?? 0) >> j) & 1;
         
         // Calcular la posición en el array de píxeles
         // Solo modificamos los canales R, G, B (no Alpha)
@@ -92,7 +92,7 @@ export async function hideMessage(
         // Asegurarse de no modificar el canal Alpha si existe
         if (pixelPos < pixelData.length && (pixelPos % channels) < 3) {
           // Modificar el bit menos significativo
-          pixelData[pixelPos] = (pixelData[pixelPos] & 0xFE) | bit;
+          pixelData[pixelPos] = (pixelData[pixelPos]! & 0xFE) | bit;
           bitIndex++;
         }
       }
@@ -161,7 +161,7 @@ export async function extractMessage(
         // Asegurarse de solo leer de los canales R,G,B (no Alpha)
         if (pixelPos < pixelData.length && (pixelPos % channels) < 3) {
           // Extraer el bit menos significativo
-          const bit = pixelData[pixelPos] & 1;
+          const bit = pixelData[pixelPos]! & 1;
           byte |= (bit << j);
           bitIndex++;
         }
@@ -190,7 +190,7 @@ export async function extractMessage(
         // Asegurarse de solo leer de los canales R,G,B (no Alpha)
         if (pixelPos < pixelData.length && (pixelPos % channels) < 3) {
           // Extraer el bit menos significativo
-          const bit = pixelData[pixelPos] & 1;
+          const bit = pixelData[pixelPos]! & 1;
           byte |= (bit << j);
           bitIndex++;
         }

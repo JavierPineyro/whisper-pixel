@@ -26,7 +26,7 @@ export function encryptText(text: string, key: string): string {
     const iv: Buffer = crypto.randomBytes(IV_LENGTH);
     
     // Crear cifrador
-    const cipher = crypto.createCipheriv(ALGORITHM, keyBuffer, iv);
+    const cipher = crypto.createCipheriv(ALGORITHM, keyBuffer, iv) as crypto.CipherGCM;
     
     // Encriptar el texto
     let encrypted: string = cipher.update(text, 'utf8', 'base64');
@@ -75,7 +75,7 @@ export function decryptText(encryptedBase64: string, key: string): string {
     );
     
     // Crear descifrador
-    const decipher = crypto.createDecipheriv(ALGORITHM, keyBuffer, iv);
+    const decipher = crypto.createDecipheriv(ALGORITHM, keyBuffer, iv) as crypto.DecipherGCM;
     decipher.setAuthTag(authTag);
     
     // Desencriptar el texto

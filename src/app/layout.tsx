@@ -12,6 +12,7 @@ import {
   SignedOut,
   UserButton,
 } from '@clerk/nextjs'
+import { Footer } from "~/components/footer";
 
 const oxanium = Oxanium({ subsets: ["latin"] })
 
@@ -26,22 +27,33 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-  <ClerkProvider>
-    <html lang="es" className="dark" suppressHydrationWarning={process.env.NODE_ENV === 'production'}>
-      <body className={oxanium.className}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-          <Navbar />
-	  <SignedOut>
+    <ClerkProvider>
+      <html
+        lang="es"
+        className="dark"
+        suppressHydrationWarning={process.env.NODE_ENV === "production"}
+      >
+        <body
+          className={`${oxanium.className} bg-background text-foreground h-full min-h-screen`}
+        >
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem={false}
+          >
+            <Navbar />
+            {/*<SignedOut>
               <SignInButton />
               <SignUpButton />
             </SignedOut>
             <SignedIn>
               <UserButton />
-            </SignedIn>
-          {children}
-        </ThemeProvider>
-      </body>
-    </html>
-  </ClerkProvider>
-  )
+            </SignedIn>*/}
+            {children}
+            <Footer />
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
+  );
 }
