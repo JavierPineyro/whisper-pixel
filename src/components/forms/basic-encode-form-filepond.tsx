@@ -20,6 +20,7 @@ import FilePondPluginImagePreview from 'filepond-plugin-image-preview';
 import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
 
 import { toast } from 'sonner';
+import { useGlitch } from 'react-powerglitch'
 
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
 
@@ -34,7 +35,32 @@ export function BasicEncodeFormFilepond() {
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
-
+  const glitch = useGlitch({
+  "playMode": "always",
+  "optimizeSeo": true,
+  "createContainers": true,
+  "hideOverflow": false,
+  "timing": {
+    "duration": 2000
+  },
+  "glitchTimeSpan": {
+    "start": 0.5,
+    "end": 0.7
+  },
+  "shake": {
+    "velocity": 27,
+    "amplitudeX": 0.05,
+    "amplitudeY": 0.03
+  },
+  "slice": {
+    "count": 9,
+    "velocity": 37,
+    "minHeight": 0.02,
+    "maxHeight": 0.15,
+    "hueRotate": true
+  },
+  "pulse": false
+});
   // Función de limpieza para las Object URLs (previsualizaciones y blobs procesados)
   const revokeObjectUrls = (urls: (string | null | undefined)[]) => {
       urls.forEach(url => {
@@ -133,7 +159,9 @@ export function BasicEncodeFormFilepond() {
   };
 
   const handleModalClose = (open: boolean) => {
+    console.log('handleModalClose llamado, open:', open); 
     if (!open) { 
+   console.log('Modal cerrando, intentando resetear formulario...');
       if (isProcessing && abortControllerRef.current) {
           abortControllerRef.current.abort();
       }
@@ -187,19 +215,19 @@ export function BasicEncodeFormFilepond() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Ocultando mensaje</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription as="div">
             
               {currentImagePreviewUrlForModal && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={currentImagePreviewUrlForModal} alt="Uploaded Preview" className="max-w-full h-auto object-contain mb-4" />
-              )}
+		// eslint-disable-next-line @next/next/no-img-element
+                <img src={currentImagePreviewUrlForModal} alt="Uploaded Preview" className={`max-w-full h-auto object-contain mb-4 ${isProcessing?'blur-md':'blur-none'}`} />
+	      )}
         
               {isProcessing ? (
-                <p>Encriptando imagen, por favor espera...</p>
+                <span>Encriptando imagen, por favor espera...</span>
               ) : processedBlobUrl ? (
-                 <p>Procesamiento completado!</p>
+                 <span>Procesamiento completado!</span>
               ) : (
-                 <p>Procesamiento fallido o cancelado.</p>
+                 <span>Procesamiento fallido o cancelado.</span>
               )}
 
             </AlertDialogDescription>
@@ -209,16 +237,16 @@ export function BasicEncodeFormFilepond() {
             {isProcessing ? (
               <Button disabled>Procesando...</Button>
             ) : processedBlobUrl ? (
-              <Button asChild>
+              <span><Button ref={glitch.ref}  asChild>
                 <a
                   href={processedBlobUrl}
                   download={imageFile?.name ? `processed_${imageFile.name}` : 'processed_image.png'}
                 >
                   Descargar Imagen
                 </a>
-              </Button>
-            ): (<Button onClick={()=>SetIsModalOpen(false)}>Cerrar</Button>)}
-		<Button className="bg-secondary" onClick={()=>setIsModalOpen(false)}>Cerrar</Button>
+              </Button></span>
+            ): (<Button onClick={()=>handleModalClose(false)}>Cerrar</Button>)}
+		<Button className="bg-secondary transition-colors  hover:bg-secondary/90" onClick={()=>handleModalClose(false)}>Cerrar</Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
