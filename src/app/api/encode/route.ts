@@ -1,15 +1,8 @@
-// app/api/encode/route.js
-import { hideMessage } from '@/server/steganography';
-import { NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
+import { hideMessage } from '~/server/steganography';
 
-/**
- * API handler para ocultar mensajes en imágenes usando esteganografía
- * Recibe un FormData con los campos 'image' y 'message'
- * Devuelve la imagen modificada como stream
- */
-export async function POST(request) {
+export async function POST(request: NextRequest) {
   try {
-    // Verificar que el request sea FormData
     if (!request.headers.get('content-type')?.includes('multipart/form-data')) {
       return NextResponse.json(
         { error: 'Se requiere FormData' },
@@ -17,14 +10,11 @@ export async function POST(request) {
       );
     }
 
-    // Obtener FormData del request
     const formData = await request.formData();
     
-    // Extraer la imagen y el mensaje
-    const imageFile = formData.get('image');
-    const message = formData.get('message');
+    const imageFile = formData.get('image') as File | null;
+    const message = formData.get('message') as string | null;
     
-    // Validar que se hayan enviado ambos campos
     if (!imageFile || !message) {
       return NextResponse.json(
         { error: 'Se requieren los campos "image" y "message"' },
@@ -32,7 +22,6 @@ export async function POST(request) {
       );
     }
     
-    // Validar que el archivo sea una imagen PNG
     if (!imageFile.type || !imageFile.type.startsWith('image/png')) {
       return NextResponse.json(
         { error: 'Solo se admiten imágenes PNG' },
@@ -43,9 +32,7 @@ export async function POST(request) {
     // Convertir imagen a ArrayBuffer
     const imageBuffer = Buffer.from(await imageFile.arrayBuffer());
     
-    // Obtener parámetros de encriptación
     const encrypted = formData.get('encrypted') === 'true';
-    // Usar la clave de encriptación desde variables de entorno
     const encryptionKey = encrypted ? process.env.STEGANOGRAPHY_KEY : null;
     
     // Ocultar el mensaje en la imagen
@@ -53,7 +40,8 @@ export async function POST(request) {
       imageBuffer,
       message,
       encrypted,
-      encryptionKey
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+      encryptionKey || null
     );
     
     // Construir la respuesta como stream
@@ -71,7 +59,7 @@ export async function POST(request) {
     console.error('Error en el endpoint de esteganografía:', error);
     
     return NextResponse.json(
-      { error: error.message || 'Error al procesar la imagen' },
+      { error: error instanceof Error ? error.message : 'Error al procesar la imagen' },
       { status: 500 }
     );
   }

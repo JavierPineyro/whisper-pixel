@@ -13,6 +13,8 @@ import {
   UserButton,
 } from '@clerk/nextjs'
 import { Footer } from "~/components/footer";
+import { Toaster } from "sonner";
+//import 'sonner/dist/style.css';
 
 const oxanium = Oxanium({ subsets: ["latin"] })
 
@@ -41,6 +43,8 @@ export default function RootLayout({
             defaultTheme="dark"
             enableSystem={false}
           >
+            <Toaster richColors position="top-right" />
+
             <Navbar />
             {/*<SignedOut>
               <SignInButton />
