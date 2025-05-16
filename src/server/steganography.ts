@@ -40,6 +40,8 @@ export async function hideMessage(
       // Añadir prefijo para indicar que está encriptado
       finalMessage = `encrypted:${finalMessage}`;
     }
+
+	// Controlar si se envia encrypted=true y no hay encryptionKey, throw error
     
     // Preparar el mensaje con marcador final
     const fullMessage: string = finalMessage + END_MARKER;
@@ -208,13 +210,25 @@ export async function extractMessage(
     // Eliminar el marcador final
     let actualMessage = extractedText.slice(0, -END_MARKER.length);
     
-    // Desencriptar si es necesario
-    if (encrypted && encryptionKey && actualMessage.startsWith('encrypted:')) {
+    // Verificar si el mensaje está encriptado
+    if (actualMessage.startsWith('encrypted:')) {
+      // Si el mensaje está encriptado pero no se solicitó desencripción, lanzar error
+      if (!encrypted) {
+        throw new Error('El mensaje está encriptado. Debe proporcionar el parámetro encrypted=true y una clave de desencriptación');
+      }
+      
+      // Si se solicitó desencriptación pero falta la clave
+      if (!encryptionKey) {
+        throw new Error('Se requiere una clave de desencriptación para extraer este mensaje');
+      }
+      
       // Quitar el prefijo 'encrypted:'
       const encryptedText = actualMessage.substring(10);
       // Usar la función de desencriptación real
       actualMessage = decryptText(encryptedText, encryptionKey);
     }
+    // Si el mensaje no está encriptado y se pasó encrypted=true, simplemente continuamos
+    // sin hacer nada especial, devolviendo el mensaje como está
     
     return actualMessage;
   } catch (error) {
