@@ -138,11 +138,11 @@ export function BasicDecodeFormFilepond() {
   };
 
   return (
-    <div className="">
+    <div className="w-full">
       <Label htmlFor="decode-image-upload">Imagen con Mensaje Oculto</Label>
       <div className="flex w-full items-center justify-center">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-          <div className="flex flex-col gap-2">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-2 w-full">
+          <div className="flex flex-col gap-2 w-full">
             <Label htmlFor="image">Imagen</Label>
             <FilePond
               files={imageFile ? [imageFile] : []}
