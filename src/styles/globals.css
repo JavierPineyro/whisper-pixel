@@ -187,6 +187,20 @@
 body {
   letter-spacing: var(--tracking-normal);
 }
+
+/* the background color of the filepond drop area */
+.filepond--panel-root {
+    background-color: var(--background);
+}
+.filepond--item-panel {
+    background-color: var(--color-muted);
+}
+/* limiting de height of filepond
+.filepond--root {
+    max-height: 10em;
+}
+*/
+
 /*----------------------------------
 
 :root {

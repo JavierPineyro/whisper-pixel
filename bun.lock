@@ -19,6 +19,7 @@
         "clsx": "^2.1.1",
         "drizzle-orm": "^0.41.0",
         "filepond": "^4.32.7",
+        "filepond-plugin-file-validate-type": "^1.2.9",
         "filepond-plugin-image-exif-orientation": "^1.0.11",
         "filepond-plugin-image-preview": "^4.6.12",
         "lucide-react": "^0.508.0",
@@ -670,6 +671,8 @@
     "file-entry-cache": ["file-entry-cache@8.0.0", "", { "dependencies": { "flat-cache": "^4.0.0" } }, "sha512-XXTUwCvisa5oacNGRP9SfNtYBNAMi+RPwBFmblZEF7N7swHYQS6/Zfk7SRwx4D5j3CH211YNRco1DEMNVfZCnQ=="],
 
     "filepond": ["filepond@4.32.7", "", {}, "sha512-L2idUfC31Qb2ZuFn8yAjX+Km6Ouq0kQn6JHcwhqrl5Ee9cB7xctLa0nkbbAeCML2+a1/cUsd0TqBgVcxYW08GA=="],
+
+    "filepond-plugin-file-validate-type": ["filepond-plugin-file-validate-type@1.2.9", "", { "peerDependencies": { "filepond": ">=1.x <5.x" } }, "sha512-Tzv07aNdZvjUXDRA3XL16QMEvh6llDrXlcZ6W0eTHQ+taHaVg/JKJTFs/AViO+6ZcpPCcQStbhYEL2HoS+vldw=="],
 
     "filepond-plugin-image-exif-orientation": ["filepond-plugin-image-exif-orientation@1.0.11", "", { "peerDependencies": { "filepond": ">=3.x <5.x" } }, "sha512-hLBc12Fk6Zkj3L8mSAn+elugHOqT5rLUbgVXQQIQjMe0FsGjtpoxqeVR6jt4IWHGat2L9sFAgU2TGmd1mqosCg=="],
 
