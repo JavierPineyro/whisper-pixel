@@ -22,7 +22,7 @@ import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
 
 import { toast } from "sonner";
 import { useGlitch } from "react-powerglitch";
-import { glitchOptions } from "~/lib/utils";
+import { customTypeDetector, glitchOptions } from "~/lib/utils";
 
 registerPlugin(
   FilePondPluginImageExifOrientation,
@@ -165,35 +165,6 @@ export function BasicEncodeFormFilepond() {
     };
   }, [currentImagePreviewUrlForModal]);
 
-  interface CustomTypeDetectorSource {
-    name?: string;
-    slice?: (start?: number, end?: number) => Blob;
-  }
-
-  type CustomTypeDetector = (
-    source: CustomTypeDetectorSource,
-    type: string,
-  ) => Promise<string>;
-
-  const customTypeDetector: CustomTypeDetector = (source, type) => {
-    return new Promise<string>((resolve, reject) => {
-      // 'source' es el objeto File o Blob
-      // 'type' es el tipo detectado por el navegador (puede ser vacío o incorrecto)
-
-      if (source.name) {
-        const fileName = source.name.toLowerCase();
-        if (fileName.endsWith(".png")) {
-          resolve("image/png"); // Si termina en .png, asumimos que es image/png
-        } else {
-          // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-          reject("Archivo no es PNG"); // Rechazar si no parece ser PNG por extensión
-        }
-      } else {
-        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-        reject("No se pudo determinar el tipo de archivo");
-      }
-    });
-  };
 
   return (
     <div className="">

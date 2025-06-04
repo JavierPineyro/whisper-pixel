@@ -1,9 +1,30 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import type { CustomTypeDetector } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
+
+  export const customTypeDetector: CustomTypeDetector = (source, type) => {
+    return new Promise<string>((resolve, reject) => {
+      // 'source' es el objeto File o Blob
+      // 'type' es el tipo detectado por el navegador (puede ser vacío o incorrecto)
+
+      if (source.name) {
+        const fileName = source.name.toLowerCase();
+        if (fileName.endsWith(".png")) {
+          resolve("image/png"); // Si termina en .png, asumimos que es image/png
+        } else {
+          // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+          reject("Archivo no es PNG");
+        }
+      } else {
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+        reject("No se pudo determinar el tipo de archivo");
+      }
+    });
+  };
 
 export const glitchOptions = {
     playMode: "always",
