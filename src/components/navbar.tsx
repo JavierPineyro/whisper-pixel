@@ -11,11 +11,11 @@ export function Navbar() {
           </Link>
         </div>
         <div className="flex items-center space-x-4">
-          <a href="/about" className="text-sm text-muted-foreground hover:text-foreground">
-            About
+          <a href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground">
+            Dashboard
           </a>
           <a href="/contact" className="text-sm text-muted-foreground hover:text-foreground">
-            Contact
+            Github
           </a>
         </div>
       </div>
