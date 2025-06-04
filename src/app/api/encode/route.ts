@@ -29,13 +29,11 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Convertir imagen a ArrayBuffer
     const imageBuffer = Buffer.from(await imageFile.arrayBuffer());
     
     const encrypted = formData.get('encrypted') === 'true';
     const encryptionKey = encrypted ? process.env.STEGANOGRAPHY_KEY : null;
     
-    // Ocultar el mensaje en la imagen
     const modifiedImageBuffer = await hideMessage(
       imageBuffer,
       message,
