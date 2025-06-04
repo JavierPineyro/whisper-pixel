@@ -36,9 +36,8 @@ export default function HomePage() {
           Protege tus secretos con Whisper Pixel ¡Es gratis!. Oculta y revela
           mensajes secretos en imágenes PNG de forma segura. Ya sea que quieras
           enviar un mensaje privado o simplemente divertirte, nuestra
-          herramienta te permite hacerlo de manera rápida y secilla.{" "}
-          <br/>
-	  <span className="text-accent/80 font-semibold">
+          herramienta te permite hacerlo de manera rápida y secilla.<br/>
+	        <span className="text-accent/80 font-semibold">
             ¡Registrate para acceder funciones avanzadas!
           </span>
         </p>
