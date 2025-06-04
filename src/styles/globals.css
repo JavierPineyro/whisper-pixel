@@ -199,6 +199,7 @@ body {
 .filepond--drop-label{
   color: var(--muted-foreground) !important;
 }
+
 /* limiting de height of filepond
 .filepond--root {
     max-height: 10em;

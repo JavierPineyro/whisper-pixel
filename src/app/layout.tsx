@@ -36,7 +36,7 @@ export default function RootLayout({
         suppressHydrationWarning={process.env.NODE_ENV === "production"}
       >
         <body
-          className={`${oxanium.className} bg-background text-foreground h-full min-h-screen`}
+          className={`${oxanium.className} flex flex-col bg-background text-foreground min-h-screen`}
         >
           <ThemeProvider
             attribute="class"
@@ -53,7 +53,7 @@ export default function RootLayout({
             <SignedIn>
               <UserButton />
             </SignedIn>*/}
-            {children}
+            <div className="flex-1 flex items-center">{children}</div>
             <Footer />
           </ThemeProvider>
         </body>

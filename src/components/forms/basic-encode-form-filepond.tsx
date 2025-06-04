@@ -213,7 +213,7 @@ export function BasicEncodeFormFilepond() {
                 <img
                   src={currentImagePreviewUrlForModal}
                   alt="Uploaded Preview"
-                  className={`mb-4 h-auto max-w-full object-contain ${isProcessing ? "blur-md" : "blur-none"}`}
+                  className={`mb-4 h-auto aspect-square max-w-full object-contain ${isProcessing ? "blur-md" : "blur-none"}`}
                 />
               )}
 

@@ -3,8 +3,8 @@ import Link from "next/link";
 
 export function Navbar() {
   return (
-    <nav className="bg-background border-b border-border">
-      <div className="container flex items-center justify-between h-16 px-4">
+    <nav className="bg-background border-b border-border h-14">
+      <div className="container flex items-center justify-between h-full px-4">
         <div className="flex items-center">
           <Link href="/" className="text-lg font-bold text-foreground">
             Whisper Pixel
