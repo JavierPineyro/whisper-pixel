@@ -3,7 +3,7 @@
 import { useState, type FormEvent, useRef, useEffect } from "react";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
-import { Textarea } from "~/components/ui/textarea";
+// import { Textarea } from "~/components/ui/textarea";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -12,7 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
-import { Search, FileText } from "lucide-react";
+// import { Search, FileText } from "lucide-react";
 
 import { FilePond, registerPlugin } from "react-filepond";
 import "filepond/dist/filepond.min.css";
@@ -78,7 +78,7 @@ export function BasicDecodeFormFilepond() {
     }
     setIsModalOpen(true);
     setIsProcessing(true);
-    toast.info("Procesando imagen...");
+    // toast.info("Procesando imagen...");
 
     const controller = new AbortController();
     abortControllerRef.current = controller;
@@ -100,11 +100,10 @@ export function BasicDecodeFormFilepond() {
       }
 
       if (!response.ok) {
-        const errorBody = await response
-          .text()
-          .catch(() => "Error desconocido");
-        console.error("Error en la respuesta del servidor:", errorBody);
-        toast.error(`Error en la respuesta del servidor`);
+        const errorData = (await response.json().catch(() => ({ error: "Error desconocido" }))) as { error: string };
+        console.error("Error en la respuesta del servidor:", errorData);
+        toast.error(errorData.error ?? "Error en la respuesta del servidor");
+        return;
       }
 
       if (signal.aborted) {
@@ -112,9 +111,9 @@ export function BasicDecodeFormFilepond() {
         return;
       }
 
-      const data = (await response.json()) as DecodeResponse;
+      const data = await response.json() as DecodeResponse;
       if (!data.success) {
-        throw new Error(data.message || "Error al procesar la imagen");
+        throw new Error(data.message ?? "Error al procesar la imagen");
       }
 
       setRevealedMessage(data.message);
