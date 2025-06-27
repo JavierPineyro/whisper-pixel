@@ -1,9 +1,15 @@
 "use client";
 
-import { useState, type FormEvent, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, type FormEvent } from "react";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Textarea } from "~/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
+import { Switch } from "~/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
+import { Lock, AlertCircle } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -30,20 +36,20 @@ registerPlugin(
   FilePondPluginFileValidateType,
 );
 
-export function BasicEncodeFormFilepond() {
+export function EncodeFormFilepond() {
   const [message, setMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processedBlobUrl, setProcessedBlobUrl] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [encryptionType, setEncryptionType] = useState("basic");
+  const [encryptionLevel, setEncryptionLevel] = useState("medium");
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const glitch = useGlitch(glitchOptions);
-  // Función de limpieza para las Object URLs (previsualizaciones y blobs procesados)
   const revokeObjectUrls = (urls: (string | null | undefined)[]) => {
     urls.forEach((url) => {
       if (url && url.startsWith("blob:")) {
-        // Solo revocar URLs de blob creadas por nosotros
         URL.revokeObjectURL(url);
       }
     });
@@ -71,59 +77,46 @@ export function BasicEncodeFormFilepond() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
     if (!imageFile) {
       toast.warning("Por favor, selecciona una imagen para subir.");
       return;
     }
-
     revokeObjectUrls([processedBlobUrl]);
     setProcessedBlobUrl(null);
-
     setIsModalOpen(true);
     setIsProcessing(true);
     toast.info("Procesando imagen...");
-
     const controller = new AbortController();
     abortControllerRef.current = controller;
     const signal = controller.signal;
-
     const formData = new FormData();
     formData.append("image", imageFile);
     formData.append("message", message);
-
+    formData.append("encrypted", encryptionType === "encrypted" ? "true" : "false");
+    if (encryptionType === "encrypted") {
+      console.log("encryptionLevel:", encryptionLevel);
+    }
     try {
       const response = await fetch("/api/encode", {
         method: "POST",
         body: formData,
         signal: signal,
       });
-
       if (signal.aborted) {
         console.log("Petición abortada antes de la respuesta.");
         return;
       }
-
       if (!response.ok) {
-        /* const errorBody = await response
-          .text()
-          .catch(() => "Error desconocido");
-        console.error("Error en la respuesta del servidor:", errorBody);
-        toast.error(`Error en la respuesta del servidor`); */
-        const errorData = (await response.json()
-          .catch(() => ({ error: "Error desconocido" }))) as { error: string };
+        const errorData = (await response.json().catch(() => ({ error: "Error desconocido" }))) as { error: string };
         console.error("Error en la respuesta del servidor:", errorData);
         toast.error(errorData.error ?? "Error en la respuesta del servidor");
         return;
       }
-
       const imageBlob = await response.blob();
-
       if (signal.aborted) {
         console.log("Petición abortada mientras se leía el cuerpo.");
         return;
       }
-
       const blobUrl = URL.createObjectURL(imageBlob);
       setProcessedBlobUrl(blobUrl);
       toast.success("Imagen procesada exitosamente!");
@@ -144,9 +137,7 @@ export function BasicEncodeFormFilepond() {
   };
 
   const handleModalClose = (open: boolean) => {
-    console.log("handleModalClose llamado, open:", open);
     if (!open) {
-      console.log("Modal cerrando, intentando resetear formulario...");
       if (isProcessing && abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
@@ -170,58 +161,106 @@ export function BasicEncodeFormFilepond() {
     };
   }, [currentImagePreviewUrlForModal]);
 
-
   return (
-    <div className="">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="image">Imagen</Label>
-          <FilePond
-            files={imageFile ? [imageFile] : []}
-            onupdatefiles={handleFilePondUpdate}
-            allowMultiple={false}
-            maxFiles={1}
-            name="image"
-            labelIdle='Arrastra y suelta tu imagen o <span class="filepond--label-action">Examina</span>'
-            server={null}
-            acceptedFileTypes={["image/png"]}
-            fileValidateTypeDetectType={customTypeDetector}
-          />
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-2">
+        <Label htmlFor="image">Imagen</Label>
+        <FilePond
+          files={imageFile ? [imageFile] : []}
+          onupdatefiles={handleFilePondUpdate}
+          allowMultiple={false}
+          maxFiles={1}
+          name="image"
+          labelIdle='Arrastra y suelta tu imagen o <span class="filepond--label-action">Examina</span>'
+          server={null}
+          acceptedFileTypes={["image/png", "image/jpeg", "image/jpg", "image/gif"]}
+          fileValidateTypeDetectType={customTypeDetector}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="message">Mensaje Secreto</Label>
+        <Textarea
+          id="message"
+          placeholder="Escribe tu mensaje secreto aquí..."
+          className="min-h-[100px]"
+          value={message}
+          onChange={e => setMessage(e.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label>Método de Ocultamiento</Label>
+        <RadioGroup value={encryptionType} onValueChange={setEncryptionType} className="flex flex-col space-y-2">
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="basic" id="basic" />
+            <Label htmlFor="basic" className="cursor-pointer">
+              Básico
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="encrypted" id="encrypted" />
+            <Label htmlFor="encrypted" className="cursor-pointer">
+              Encriptado
+            </Label>
+          </div>
+        </RadioGroup>
+      </div>
+      <div className="space-y-4 pt-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Switch id="password-protection" disabled />
+            <Label htmlFor="password-protection" className="text-muted-foreground">
+              Protección con Contraseña
+            </Label>
+          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <AlertCircle className="h-4 w-4 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Esta función estará disponible próximamente</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="message">Mensaje secreto</Label>
-          <Textarea
-            id="message"
-            value={message}
-            required
-            onChange={(e) => setMessage(e.target.value)}
-            rows={3}
-          />
-        </div>
-
-        <Button
-          className="mt-4 w-full bg-purple-600 hover:bg-purple-700"
-          type="submit"
-          disabled={!imageFile || isProcessing}
-        >
-          {isProcessing ? "Encriptando..." : "Ocultar mensaje"}
-        </Button>
-      </form>
-
+        {encryptionType === "encrypted" && (
+          <div className="space-y-2">
+            <Label htmlFor="encryption-level">Nivel de Encriptación</Label>
+            <Select value={encryptionLevel} onValueChange={setEncryptionLevel}>
+              <SelectTrigger id="encryption-level">
+                <SelectValue placeholder="Selecciona un nivel" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">Bajo</SelectItem>
+                <SelectItem value="medium">Medio</SelectItem>
+                <SelectItem value="high">Alto</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      </div>
+      <Alert variant="default" className="bg-purple-500/10 text-purple-500 border-purple-500/20">
+        <Lock className="h-4 w-4" />
+        <AlertTitle className="font-semibold">Seguridad</AlertTitle>
+        <AlertDescription className="text-purple-500/80">
+          Tu mensaje será ocultado de forma segura en la imagen. Solo quien conozca que existe un mensaje oculto podrá extraerlo.
+        </AlertDescription>
+      </Alert>
+      <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700">
+        Ocultar Mensaje
+      </Button>
       <AlertDialog open={isModalOpen} onOpenChange={handleModalClose}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Ocultando mensaje</AlertDialogTitle>
             <AlertDialogDescription>
               {currentImagePreviewUrlForModal && (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={currentImagePreviewUrlForModal}
                   alt="Uploaded Preview"
                   className={`mb-4 h-auto aspect-square max-w-full object-contain ${isProcessing ? "blur-md" : "blur-none"}`}
                 />
               )}
-
               {isProcessing ? (
                 <span>Encriptando imagen, por favor espera...</span>
               ) : processedBlobUrl ? (
@@ -261,6 +300,6 @@ export function BasicEncodeFormFilepond() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </form>
   );
 }
