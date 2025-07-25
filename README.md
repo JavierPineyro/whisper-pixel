@@ -6,8 +6,8 @@
 
 [] Cambiar el tema
 [] Agregar en el nav clerk
-[] Agregar el form del en el dashboard
-[] Hacer funcionar el encode decode con encription
+[x] Agregar el form del en el dashboard
+[x] Hacer funcionar el encode decode con encription
 [] Hacer funcionar el encode con Password
 [] Proteger las rutas
 [] Desplegar en algun servicio
