@@ -113,6 +113,3 @@ describe('Steganography', () => {
 // 4.  **Corrupted Data:**
 //     - Test how the `extractMessage` function behaves if the steganographic data in the image is partially corrupted
 //       (e.g., the end marker is missing or the length header is invalid).
-  });
-  
-});
