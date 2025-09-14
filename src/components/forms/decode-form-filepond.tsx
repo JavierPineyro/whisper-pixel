@@ -3,8 +3,8 @@
 import { useState, useRef, useEffect, type FormEvent } from "react";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
-import { Input } from "~/components/ui/input";
-import { FileText } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
+import { Eye, AlertCircle } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -20,10 +20,10 @@ import FilePondPluginImageExifOrientation from "filepond-plugin-image-exif-orien
 import FilePondPluginImagePreview from "filepond-plugin-image-preview";
 import FilePondPluginFileValidateType from "filepond-plugin-file-validate-type";
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
-import { customTypeDetector } from "~/lib/utils";
+
 import { toast } from "sonner";
-import type { DecodeResponse } from "~/lib/types";
-import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
+import { useGlitch } from "react-powerglitch";
+import { customTypeDetector, glitchOptions } from "~/lib/utils";
 
 registerPlugin(
   FilePondPluginImageExifOrientation,
@@ -32,20 +32,25 @@ registerPlugin(
 );
 
 export function DecodeFormFilepond() {
-  const [revealedMessage, setRevealedMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processedMessage, setProcessedMessage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [password, setPassword] = useState("");
-  const [encrypted, setEncrypted] = useState("false");
 
   const abortControllerRef = useRef<AbortController | null>(null);
+  const glitch = useGlitch(glitchOptions);
+  const revokeObjectUrls = (urls: (string | null | undefined)[]) => {
+    urls.forEach((url) => {
+      if (url && url.startsWith("blob:")) {
+        URL.revokeObjectURL(url);
+      }
+    });
+  };
 
   useEffect(() => {
-    const abortController = abortControllerRef.current;
     return () => {
-      if (isProcessing && abortController) {
-        abortController.abort();
+      if (isProcessing && abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
     };
   }, [isProcessing]);
@@ -59,65 +64,55 @@ export function DecodeFormFilepond() {
     }
   };
 
-  const handleModalClose = (open: boolean) => {
-    if (!open) {
-      if (isProcessing && abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      setRevealedMessage("");
-      setImageFile(null);
-      setIsModalOpen(false);
-      setPassword("");
-    } else {
-      setIsModalOpen(true);
-    }
-  };
-
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!imageFile) {
       toast.warning("Por favor, selecciona una imagen para subir.");
       return;
     }
-    if (password) {
-      console.log("password:", password);
-    }
+    setProcessedMessage(null);
     setIsModalOpen(true);
     setIsProcessing(true);
+    toast.info("Procesando imagen...");
     const controller = new AbortController();
     abortControllerRef.current = controller;
     const signal = controller.signal;
     const formData = new FormData();
     formData.append("image", imageFile);
-    formData.append("encrypted", encrypted);
+
     try {
       const response = await fetch("/api/decode", {
         method: "POST",
         body: formData,
         signal: signal,
       });
+
       if (signal.aborted) {
+        console.log("Petición abortada antes de la respuesta.");
         return;
       }
+
       if (!response.ok) {
         const errorData = (await response.json().catch(() => ({ error: "Error desconocido" }))) as { error: string };
+        console.error("Error en la respuesta del servidor:", errorData);
         toast.error(errorData.error ?? "Error en la respuesta del servidor");
         return;
       }
+
+      const data = await response.json();
       if (signal.aborted) {
+        console.log("Petición abortada mientras se leía el cuerpo.");
         return;
       }
-      const data = await response.json() as DecodeResponse;
-      if (!data.success) {
-        throw new Error(data.message ?? "Error al procesar la imagen");
-      }
-      setRevealedMessage(data.message);
-      setIsModalOpen(true);
-      toast.success("Imagen procesada exitosamente!");
+
+      setProcessedMessage(data.message);
+      toast.success("¡Mensaje revelado exitosamente!");
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
-        toast.error("Procesamiento cancelado.");
+        console.log("La petición fetch fue abortada.");
+        toast.info("Procesamiento cancelado.");
       } else {
+        console.error("Error al enviar el formulario:", error);
         toast.error(
           `Error al procesar la imagen: ${error instanceof Error ? error.message : String(error)}`,
         );
@@ -128,10 +123,33 @@ export function DecodeFormFilepond() {
     }
   };
 
+  const handleModalClose = (open: boolean) => {
+    if (!open) {
+      if (isProcessing && abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      setProcessedMessage(null);
+      setImageFile(null);
+      setIsModalOpen(false);
+    } else {
+      setIsModalOpen(true);
+    }
+  };
+
+  const currentImagePreviewUrlForModal = imageFile
+    ? URL.createObjectURL(imageFile)
+    : null;
+
+  useEffect(() => {
+    return () => {
+      revokeObjectUrls([currentImagePreviewUrlForModal]);
+    };
+  }, [currentImagePreviewUrlForModal]);
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 w-full">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="decode-image-upload">Imagen con Mensaje Oculto</Label>
+        <Label htmlFor="image">Imagen</Label>
         <FilePond
           files={imageFile ? [imageFile] : []}
           onupdatefiles={handleFilePondUpdate}
@@ -144,69 +162,40 @@ export function DecodeFormFilepond() {
           fileValidateTypeDetectType={customTypeDetector}
         />
       </div>
-      <div className="space-y-2">
-        <Label>Método de Ocultamiento</Label>
-        <RadioGroup value={encrypted} onValueChange={setEncrypted} className="flex flex-col space-y-2">
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="false" id="basic" />
-            <Label htmlFor="basic" className="cursor-pointer">
-              Básico
-            </Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="true" id="encrypted" />
-            <Label htmlFor="encrypted" className="cursor-pointer">
-              Encriptado
-            </Label>
-          </div>
-        </RadioGroup>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="password">Contraseña (opcional)</Label>
-        <Input
-          id="password"
-          type="password"
-          placeholder="Ingresa la contraseña si el mensaje está protegido"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-        />
-        <p className="text-xs text-muted-foreground">
-          Solo necesario si el mensaje fue ocultado con protección de contraseña
-        </p>
-      </div>
-      {revealedMessage && (
-        <div className="space-y-2">
-          <Label className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Mensaje Revelado
-          </Label>
-          <div className="p-4 rounded-lg bg-purple-500/10 border border-purple-500/20">
-            <p className="text-sm">{revealedMessage}</p>
-          </div>
-        </div>
-      )}
-      <Button
-        className="w-full bg-purple-600 hover:bg-purple-700"
-        type="submit"
-        disabled={!imageFile || isProcessing}
-      >
-        {isProcessing ? "Descifrando..." : "Revelar Mensaje"}
+      <Alert variant="default" className="bg-blue-500/10 text-blue-500 border-blue-500/20">
+        <Eye className="h-4 w-4" />
+        <AlertTitle className="font-semibold">Privacidad</AlertTitle>
+        <AlertDescription className="text-blue-500/80">
+          La imagen se procesará para extraer el mensaje oculto. No se almacena ninguna información.
+        </AlertDescription>
+      </Alert>
+      <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
+        Revelar Mensaje
       </Button>
       <AlertDialog open={isModalOpen} onOpenChange={handleModalClose}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Descifrando mensaje</AlertDialogTitle>
+            <AlertDialogTitle>Revelando mensaje</AlertDialogTitle>
             <AlertDialogDescription>
+              {currentImagePreviewUrlForModal && (
+                <img
+                  src={currentImagePreviewUrlForModal}
+                  alt="Uploaded Preview"
+                  className={`mb-4 h-auto aspect-square max-w-full object-contain ${isProcessing ? "blur-md" : "blur-none"}`}
+                />
+              )}
               {isProcessing ? (
-                <span>Revelando el mensaje oculto, por favor espera...</span>
-              ) : revealedMessage ? (
-                <span>Procesamiento completado!</span>
+                <span>Revelando mensaje, por favor espera...</span>
+              ) : processedMessage ? (
+                <div>
+                  <p className="font-semibold">Mensaje Secreto:</p>
+                  <p className="mt-2 p-4 bg-gray-100 rounded-md text-gray-800">{processedMessage}</p>
+                </div>
               ) : (
                 <span>Procesamiento fallido o cancelado.</span>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div>{revealedMessage && <span>{revealedMessage}</span>}</div>
           <AlertDialogFooter>
             <Button
               className="bg-secondary hover:bg-secondary/90 transition-colors"
